@@ -1,0 +1,33 @@
+#:kivy 1.0
+
+<ToolBox@BoxLayout>:
+    size_hint:(1, .1)
+    canvas.before:
+        Color: 
+            rgba: 0, 0, 1, 1
+        Rectangle:
+            size:(self.size[0], self.size[1])
+            pos:(self.pos[0], self.pos[1])
+
+
+<MyPaintWidget>:
+
+<Container>:
+    paint:paint
+    MyPaintWidget:
+        id:paint
+
+    ToolBox:
+        pos_hint:{'x':0, 'y':0}
+        Button:
+            on_release:root.clear_canvas()
+        Button:
+            on_release:root.clear_canvas()
+
+    ToolBox:
+        pos_hint:{'x':0, 'y':.9}
+        Button:
+            on_release:root.clear_canvas()
+        Button:
+            on_release:root.clear_canvas()
+
