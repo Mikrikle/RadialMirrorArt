@@ -62,6 +62,7 @@
         down_current_line_width:down_current_line_width
         down_current_nums_of_lines:down_current_nums_of_lines
         drawing_mode_select_btn:drawing_mode_select_btn
+        down_current_icon:down_current_icon
         pos_hint:{'x':0, 'y':.2}
         size_hint:(1,1)
         canvas.before:
@@ -99,6 +100,10 @@
         size_hint:(1,.065)
         paddig:20
         pos_hint:{'x':0, 'y':0}
+        MDIconButton:
+            size_hint:1,1
+            id:down_current_icon
+            icon:'decagram-outline'
         Label:
             id:down_current_nums_of_lines
             text:'Lines\n10'

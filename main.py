@@ -44,6 +44,7 @@ class MyPaintWidget(Widget):
     down_current_color_label = ObjectProperty()
     down_current_line_width = ObjectProperty()
     down_current_nums_of_lines = ObjectProperty()
+    down_current_icon = ObjectProperty()
     undolist = [] # list of cancelled lines
     lineslist = [] # list of drawing lines
     drawing = False
@@ -125,6 +126,7 @@ class MyPaintWidget(Widget):
     def drawing_mode_custom_setattr(self, mode, icon):
         '''setting the current drawing mode and icon'''
         setattr(self.curent_drawing_mode_icon, 'icon', icon)
+        setattr(self.down_current_icon, 'icon', icon)
         self.DRAWING_MODE = mode
     
     
