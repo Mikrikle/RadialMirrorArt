@@ -16,18 +16,46 @@
     paint:paint
     MyPaintWidget:
         id:paint
+        pos_hint:{'x':0, 'y':.2}
+        size_hint:(1,1)
+        canvas.before:
+            Color: 
+                rgba: 1, 0, 0, 1
+            Rectangle:
+                size:(2, 2)
+                pos:(self.size[0]//2-1, self.size[1]//2-1)
 
-    ToolBox:
-        pos_hint:{'x':0, 'y':0}
-        Button:
-            on_release:root.clear_canvas()
-        Button:
-            on_release:root.clear_canvas()
 
     ToolBox:
         pos_hint:{'x':0, 'y':.9}
         Button:
-            on_release:root.clear_canvas()
+            text:'undo'
+            on_release:paint.undo()
+        Button:
+            text:'redo'
+            on_release:paint.redo()
+        Button:
+            text:'clear'
+            on_release:paint.clear_canvas()
+        Widget:
+        Button:
+            on_release:paint.change_drawing_mode('symmetric')
+            text:'symmetric'
+        Button:
+            on_release:paint.change_drawing_mode('square')
+            text:'square'
+        Button:
+            on_release:paint.change_drawing_mode('eight')
+            text:'eight'
+        Button:
+            on_release:paint.change_drawing_mode('hexagon')
+            text:'hexagon'
+        Button:
+            on_release:paint.change_drawing_mode('axis')
+            text:'axis'
+
+    ToolBox:
+        pos_hint:{'x':0, 'y':0}
         Button:
             on_release:root.clear_canvas()
 
