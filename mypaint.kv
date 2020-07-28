@@ -1,6 +1,19 @@
 #:kivy 1.0
 
+<MyPopup>:
+    auto_dismiss: False
+    title_align:'center'
+    size_hint:.9,.8
+
+
 <CustomDropDown>:
+    canvas.before:
+        Color: 
+            rgba: .1, .1, .1, 1
+        RoundedRectangle:
+            size:(self.size[0], self.size[1])
+            pos:(self.pos[0], self.pos[1])
+            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
     MDRoundFlatIconButton:
         font_size: "5sp"
         text:'Simple'
@@ -45,6 +58,9 @@
     paint:paint
     MyPaintWidget:
         id:paint
+        down_current_color_label:down_current_color_label
+        down_current_line_width:down_current_line_width
+        down_current_nums_of_lines:down_current_nums_of_lines
         drawing_mode_select_btn:drawing_mode_select_btn
         pos_hint:{'x':0, 'y':.2}
         size_hint:(1,1)
@@ -60,6 +76,11 @@
         pos_hint:{'x':0, 'y':.9}
         padding:20
         MDIconButton:
+            icon:'delete'
+            text:'clear'
+            on_release:paint.clear_canvas()
+        Widget:
+        MDIconButton:
             icon:'undo'
             text:'undo'
             on_release:paint.undo()
@@ -68,19 +89,32 @@
             text:'redo'
             on_release:paint.redo()
         Widget:
-        Widget:
         MDRoundFlatIconButton:
             id:drawing_mode_select_btn
-            icon:'decagram-outline'
-            text:'drawing type'
-            on_release:paint.dropdown_drawing_mode_open_menu(self)
+            icon:'brush'
+            text:'Settings'
+            on_release:paint.open_draw_popup()
 
     ToolBox:
+        size_hint:(1,.065)
+        paddig:20
         pos_hint:{'x':0, 'y':0}
+        Label:
+            id:down_current_nums_of_lines
+            text:'Lines\n10'
+        Label:
+            id:down_current_line_width
+            text:'Width\n2'
+        Label:
+            id:down_current_color_label
+            canvas:
+                RoundedRectangle:
+                    size:(self.size[0]-20, self.size[1]-20)
+                    pos:(self.pos[0]+10, self.pos[1]+10)
+                    radius: [(5, 5), (5, 5), (5, 5), (5, 5)]
+        Widget:
         MDIconButton:
-            icon:'delete'
-            text:'clear'
-            on_release:paint.clear_canvas()
-
-
-
+            size_hint:1,1
+            text:'Color'
+            icon:'palette-outline'
+            on_release:paint.open_color_popup()
