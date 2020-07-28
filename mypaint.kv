@@ -1,10 +1,39 @@
 #:kivy 1.0
 
+<CustomDropDown>:
+    MDRoundFlatIconButton:
+        font_size: "5sp"
+        text:'Simple'
+        icon:'current-ac'
+        on_release:root.select(('simple', 'current-ac'))
+    MDRoundFlatIconButton:
+        font_size: "5sp"
+        text:'Mirror'
+        icon:'arrow-split-vertical'
+        on_release:root.select(('symmetric', 'arrow-split-vertical'))
+    MDRoundFlatIconButton:
+        font_size: "5sp"
+        text:'Double-mirror'
+        icon:'crop-square'
+        on_release:root.select(('square', 'crop-square'))
+    MDRoundFlatIconButton:
+        font_size: "5sp"
+        text:'Radian'
+        icon:'decagram-outline'
+        on_release:root.select(('radian', 'decagram-outline'))
+    MDRoundFlatIconButton:
+        font_size: "5sp"
+        text:'Radian-symmetric'
+        icon:'decagram'
+        on_release:root.select(('radian-symmetric', 'decagram'))
+
+
+
 <ToolBox@BoxLayout>:
     size_hint:(1, .1)
     canvas.before:
         Color: 
-            rgba: 0, 0, 1, 1
+            rgba: .1, .1, .1, 1
         Rectangle:
             size:(self.size[0], self.size[1])
             pos:(self.pos[0], self.pos[1])
@@ -16,6 +45,7 @@
     paint:paint
     MyPaintWidget:
         id:paint
+        drawing_mode_select_btn:drawing_mode_select_btn
         pos_hint:{'x':0, 'y':.2}
         size_hint:(1,1)
         canvas.before:
@@ -28,34 +58,29 @@
 
     ToolBox:
         pos_hint:{'x':0, 'y':.9}
-        Button:
+        padding:20
+        MDIconButton:
+            icon:'undo'
             text:'undo'
             on_release:paint.undo()
-        Button:
+        MDIconButton:
+            icon:'redo'
             text:'redo'
             on_release:paint.redo()
-        Button:
-            text:'clear'
-            on_release:paint.clear_canvas()
         Widget:
-        Button:
-            on_release:paint.change_drawing_mode('symmetric')
-            text:'symmetric'
-        Button:
-            on_release:paint.change_drawing_mode('square')
-            text:'square'
-        Button:
-            on_release:paint.change_drawing_mode('eight')
-            text:'eight'
-        Button:
-            on_release:paint.change_drawing_mode('hexagon')
-            text:'hexagon'
-        Button:
-            on_release:paint.change_drawing_mode('axis')
-            text:'axis'
+        Widget:
+        MDRoundFlatIconButton:
+            id:drawing_mode_select_btn
+            icon:'decagram-outline'
+            text:'drawing type'
+            on_release:paint.dropdown_drawing_mode_open_menu(self)
 
     ToolBox:
         pos_hint:{'x':0, 'y':0}
-        Button:
-            on_release:root.clear_canvas()
+        MDIconButton:
+            icon:'delete'
+            text:'clear'
+            on_release:paint.clear_canvas()
+
+
 
