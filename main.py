@@ -65,13 +65,6 @@ class MyPaintWidget(Widget):
     def on_touch_up(self, touch):
         '''disabling drawing'''
         self.drawing = False
-
-
-    def draw_square_lines(self, pos, coeff):
-        self.obj.children[-1 - coeff].points += pos
-        self.obj.children[-3 - coeff].points += (pos[0], Window.size[1] - pos[1])
-        self.obj.children[-5 - coeff].points += (Window.size[0] - pos[0], pos[1])
-        self.obj.children[-7 - coeff].points += (Window.size[0] - pos[0], Window.size[1] - pos[1])
     
     def on_touch_move(self, touch):
         '''drawing'''
@@ -87,28 +80,29 @@ class MyPaintWidget(Widget):
                 self.obj.children[-1].points += touch.pos
                 self.obj.children[-3].points += (Window.size[0] - touch.pos[0], touch.pos[1])
             elif self.DRAWING_MODE == 'square':
-                self.draw_square_lines(touch.pos, 0)
+                self.obj.children[-1].points += touch.pos
+                self.obj.children[-3].points += (touch.pos[0], Window.size[1] - touch.pos[1])
+                self.obj.children[-5].points += (Window.size[0] - touch.pos[0], touch.pos[1])
+                self.obj.children[-7].points += (Window.size[0] - touch.pos[0], Window.size[1] - touch.pos[1])
             elif self.DRAWING_MODE == 'radian' or  self.DRAWING_MODE == 'radian-symmetric':
                 center = (Window.size[0]//2, Window.size[1]//2)
-                angle = 360/self.NUMBER_OF_LINES
                 dx = touch.pos[0] - center[0]
                 dy = touch.pos[1] - center[1]
-                l = vector_length(touch.pos, center)
                 if dx != 0:
+                    vector = vector_length(touch.pos, center)
+                    angle = 360/self.NUMBER_OF_LINES
                     alpha_radian = math.atan( dy / dx )
                     alpha_degree = alpha_radian*180/math.pi 
-                    
                     if dx < 0 :
                         alpha_degree = 180+alpha_degree
-
                     self.obj.children[-1].points += touch.pos
                     line_number = -3
                     for i in range(1, self.NUMBER_OF_LINES):
-                        self.obj.children[line_number].points += ( center[0]+l*math.cos(math.radians(alpha_degree+(angle*i))), center[1]+l*math.sin(math.radians(alpha_degree+(angle*i))))
+                        self.obj.children[line_number].points += ( center[0]+vector*math.cos(math.radians(alpha_degree+(angle*i))), center[1]+vector*math.sin(math.radians(alpha_degree+(angle*i))))
                         line_number -= 2
                     if self.DRAWING_MODE == 'radian-symmetric':
                         for i in range(0, self.NUMBER_OF_LINES):
-                            self.obj.children[line_number].points += ( center[0]-l*math.cos(math.radians(alpha_degree+(angle*i-45))), center[1]+l*math.sin(math.radians(alpha_degree+(angle*i-45))))
+                            self.obj.children[line_number].points += ( center[0]-vector*math.cos(math.radians(alpha_degree+(angle*i-45))), center[1]+vector*math.sin(math.radians(alpha_degree+(angle*i-45))))
                             line_number -= 2
         else:
             # Start drawing line
