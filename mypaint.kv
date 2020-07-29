@@ -3,12 +3,10 @@
 <MyPopup>:
     auto_dismiss: False
     title_align:'center'
-    size_hint:.9,.8
+    size_hint:.95,.85
 
 
-<DrowDownCvs@Widget>:
-
-<CustomDropDownDrawingMode>:
+<CustomDropDownDrawingMode@DrowDownBackground>:
     canvas.before:
         Color: 
             rgba: .05, .05, .05, 1
@@ -52,18 +50,36 @@
             size:(self.size[0], self.size[1])
             pos:(self.pos[0], self.pos[1])
             radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
+    BoxLayout:
+        size_hint_y: None
+        height: 55
+        Widget:
+        Label:
+            text:'close the lines?'
+            size_hint_y: None
+            height: 50
+        Widget:
+        MDSwitch:
+            size_hint_y: None
+            height: 50
+            on_touch_up:root.set_close_lines(self.active)
+        Widget:
+    Widget:
+        size_hint_y: None
+        height: 45
     Label:
         text:'Numbers of line'
         size_hint_y: None
         height: 50
     MDSlider:
         size_hint_y: None
-        height: 150
+        height: 100
         min:2
         step: 1
         max:250
         value:root.VALUE
         on_touch_move:root.slider_setattr(int(self.value))
+        on_touch_up:root.slider_setattr(int(self.value))
 
 
 <CustomDropDownLineWidth>:
@@ -74,6 +90,9 @@
             size:(self.size[0], self.size[1])
             pos:(self.pos[0], self.pos[1])
             radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
+    Widget:
+        size_hint_y: None
+        height: 50
     Label:
         text:'Lines width'
         size_hint_y: None
@@ -86,6 +105,7 @@
         max:25
         value:root.VALUE
         on_touch_move:root.slider_setattr(int(self.value))
+        on_touch_up:root.slider_setattr(int(self.value))
 
 
 

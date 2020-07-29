@@ -1,22 +1,24 @@
-from random import random
+import math
+import random
+
+from kivymd.app import MDApp
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivymd.uix.button import MDRectangleFlatButton
-from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, InstructionGroup
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty, NumericProperty
-from kivymd.app import MDApp
 from kivy.uix.dropdown import DropDown
 from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.colorpicker import ColorPicker
-from kivymd.uix.button import MDRoundFlatButton, MDIconButton
+from kivymd.uix.button import MDRoundFlatButton, MDIconButton, MDRectangleFlatButton
 from kivymd.uix.slider import MDSlider
-from kivy.clock import Clock
-import math
+from kivymd.uix.selectioncontrol import MDSwitch
+
 Window.size = (540,960)
 
 
@@ -29,35 +31,37 @@ Clock.schedule_once(set_bg, 1)
 class MyPopup(Popup):
     pass
 
-
 class CustomDropDownDrawingMode(DropDown):
     pass
 
+class Container(FloatLayout):
+    pass
 
-class CustomDropDownNumberOfLines(DropDown):
+
+class SliderDropDown(DropDown):
     VALUE = NumericProperty()
     def __init__(self, value, paint, **kwargs):
         super().__init__(**kwargs)
         self.VALUE = value
         self.paint = paint
-    
+
+    def slider_setattr(self, value):
+        pass
+
+class CustomDropDownNumberOfLines(SliderDropDown):
     def slider_setattr(self, value):
         self.paint.set_number_of_lines(value)
-
-
-class CustomDropDownLineWidth(DropDown):
-    VALUE = NumericProperty()
-    def __init__(self, value, paint, **kwargs):
-        super().__init__(**kwargs)
-        self.VALUE = value
-        self.paint = paint
+        
+    def set_close_lines(self, value):
+        self.paint.IS_LINE_CLOSE = value
     
+
+
+class CustomDropDownLineWidth(SliderDropDown):
     def slider_setattr(self, value):
         self.paint.set_line_width(value)
 
 
-class Container(FloatLayout):
-    pass
 
 
 class MyPaintWidget(Widget):
@@ -74,6 +78,7 @@ class MyPaintWidget(Widget):
     NUMBER_OF_LINES = 10
     LINE_WIDTH = 2
     COLOR = (1,0,0,1)
+    IS_LINE_CLOSE = False
     
 
     def __init__(self, **kwargs):
@@ -143,6 +148,11 @@ class MyPaintWidget(Widget):
         clr_picker = ColorPicker(color=self.COLOR)
         clr_picker.bind(color=self.on_color)
         bxl.add_widget(clr_picker)
+        self.random_color_select = MDSwitch()
+        radmcolrbx = BoxLayout(size_hint=(1,.15))
+        radmcolrbx.add_widget(Label(text='Use random colors:'))
+        radmcolrbx.add_widget(self.random_color_select)
+        bxl.add_widget(radmcolrbx)
         bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,.1), on_release=lambda btn: self.color_popup.dismiss()))
         self.color_popup.add_widget(bxl)
     
@@ -183,8 +193,8 @@ class MyPaintWidget(Widget):
                 center = (Window.size[0]//2, Window.size[1]//2)
                 dx = touch.pos[0] - center[0]
                 dy = touch.pos[1] - center[1]
+                vector = vector_length(touch.pos, center)
                 if dx != 0:
-                    vector = vector_length(touch.pos, center)
                     angle = 360/self.NUMBER_OF_LINES
                     alpha_radian = math.atan(dy / dx)
                     alpha_degree = alpha_radian*180/math.pi 
@@ -203,21 +213,20 @@ class MyPaintWidget(Widget):
             # Start drawing line
             self.drawing = True
             self.obj = InstructionGroup()
+            
+            if self.random_color_select.active:
+                self.on_color(None, (random.random(),random.random(),random.random(),1))
+            
             self.obj.add(Color(*self.COLOR))
-            if self.DRAWING_MODE == 'simple':
-                self.obj.add(Line(width=self.LINE_WIDTH))
-            elif self.DRAWING_MODE == 'symmetric':
-                for _ in range(2):
-                    self.obj.add(Line(width=self.LINE_WIDTH))
-            elif self.DRAWING_MODE == 'square':
-                for _ in range(4):
-                    self.obj.add(Line(width=self.LINE_WIDTH))
-            elif self.DRAWING_MODE == 'radian':
-                for _ in range(self.NUMBER_OF_LINES):
-                    self.obj.add(Line(width=self.LINE_WIDTH))
-            elif self.DRAWING_MODE == 'radian-symmetric':
-                for _ in range(self.NUMBER_OF_LINES*2):
-                    self.obj.add(Line(width=self.LINE_WIDTH))
+            
+            lines = {'simple':1,
+                  'symmetric':2,
+                  'square':4,
+                  'radian':self.NUMBER_OF_LINES,
+                  'radian-symmetric':self.NUMBER_OF_LINES*2}
+            
+            for _ in range(lines[self.DRAWING_MODE]):
+                self.obj.add(Line(width=self.LINE_WIDTH, close=self.IS_LINE_CLOSE))
         
             self.lineslist.append(self.obj)
             self.canvas.add(self.obj)
