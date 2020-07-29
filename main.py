@@ -60,27 +60,27 @@ class MyPaintWidget(Widget):
         self.size_hint=None,None
         self.create_color_popup()
         self.create_draw_popup()
-    
-    #---------------#
-    #-Popup windows-#
-    #---------------#
-    
 
-    
+
+    #-----------------------#
+    #-Settings Popup window-#
+    #-----------------------#
     def create_draw_popup(self):
-        def create_slider(name, min_value, max_value, base_value, func):
+        '''Creating a drawing settings window'''
+        
+        def _create_slider(name, min_value, max_value, base_value, func):
+            '''Box with slider'''
             main_box = BoxLayout(orientation='vertical',size_hint=(1,.9))
             slider_box = BoxLayout()
             info_label = Label(text=name, size_hint=(1,.5))
-            #
             slider_lbl = Label(text=str(base_value), size_hint=(.3,1))
             slider = MDSlider(min=min_value, max=max_value, value=base_value, on_touch_move=lambda this, touch : func(int(this.value)))
-            #
             slider_box.add_widget(slider_lbl)
             slider_box.add_widget(slider)
             main_box.add_widget(info_label)
             main_box.add_widget(slider_box)
             return main_box, slider, slider_lbl
+        
         self.create_drawing_mode_dropdown()
         self.draw_popup = MyPopup()
         self.draw_popup.title = 'Settings for drawing'
@@ -95,10 +95,10 @@ class MyPaintWidget(Widget):
         bxl.add_widget(dr_box)
         bxl.add_widget(Widget())
         # sliders
-        num_box, _, self.number_of_lines_lbl = create_slider('Lines', 2, 250, self.NUMBER_OF_LINES, self.set_number_of_lines)
+        num_box, _, self.number_of_lines_lbl = _create_slider('Lines', 2, 250, self.NUMBER_OF_LINES, self.set_number_of_lines)
         bxl.add_widget(num_box)
         bxl.add_widget(Widget())
-        line_box, _, self.line_width_lbl = create_slider('Line width', 1, 25, self.LINE_WIDTH, self.set_line_width)
+        line_box, _, self.line_width_lbl = _create_slider('Line width', 1, 25, self.LINE_WIDTH, self.set_line_width)
         bxl.add_widget(line_box)
         bxl.add_widget(Widget())
         
@@ -106,6 +106,19 @@ class MyPaintWidget(Widget):
         bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,.5), on_release=lambda btn: self.draw_popup.dismiss()))
         self.draw_popup.add_widget(bxl)
 
+
+    def open_draw_popup(self):
+        '''open popup window'''
+        self.draw_popup.open()
+
+
+    def create_drawing_mode_dropdown(self):
+        '''creating a menu for switching drawing modes'''
+        self.dropdown_drawing_mode = CustomDropDown()
+        self.dropdown_drawing_mode.bind(on_select=lambda instance, x: self.drawing_mode_custom_setattr(x[0], x[1]) )
+    
+    
+    # settings
     def set_line_width(self, value):
         self.LINE_WIDTH = value
         self.line_width_lbl.text = str(value)
@@ -115,28 +128,17 @@ class MyPaintWidget(Widget):
         self.NUMBER_OF_LINES = value
         self.number_of_lines_lbl.text = str(value)
         self.down_current_nums_of_lines.text = f'Lines\n{value}'
-        
-        
-    
-    def open_draw_popup(self):
-        '''open popup window'''
-        self.draw_popup.open()
-    
-    
+
     def drawing_mode_custom_setattr(self, mode, icon):
         '''setting the current drawing mode and icon'''
         setattr(self.curent_drawing_mode_icon, 'icon', icon)
         setattr(self.down_current_icon, 'icon', icon)
         self.DRAWING_MODE = mode
     
-    
-    def create_drawing_mode_dropdown(self):
-        '''creating a menu for switching drawing modes'''
-        self.dropdown_drawing_mode = CustomDropDown()
-        self.dropdown_drawing_mode.bind(on_select=lambda instance, x: self.drawing_mode_custom_setattr(x[0], x[1]) )
-        
 
-    
+    #--------------------#
+    #-Color Popup window-#
+    #--------------------#
     def create_color_popup(self):
         self.color_popup = MyPopup()
         self.color_popup.title = 'Colors'
@@ -152,7 +154,7 @@ class MyPaintWidget(Widget):
     
     def on_color(self, instance, value):
         self.COLOR = value
-        self.down_current_color_label.canvas.children[0] = Color(*value)
+        self.down_current_color_label.canvas.children[3] = Color(*value)
 
 
     #-------------------#
