@@ -6,10 +6,12 @@
     size_hint:.9,.8
 
 
-<CustomDropDown>:
+<DrowDownCvs@Widget>:
+
+<CustomDropDownDrawingMode>:
     canvas.before:
         Color: 
-            rgba: .1, .1, .1, 1
+            rgba: .05, .05, .05, 1
         RoundedRectangle:
             size:(self.size[0], self.size[1])
             pos:(self.pos[0], self.pos[1])
@@ -42,6 +44,51 @@
 
 
 
+<CustomDropDownNumberOfLines>:
+    canvas.before:
+        Color: 
+            rgba: .05, .05, .05, 1
+        RoundedRectangle:
+            size:(self.size[0], self.size[1])
+            pos:(self.pos[0], self.pos[1])
+            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
+    Label:
+        text:'Numbers of line'
+        size_hint_y: None
+        height: 50
+    MDSlider:
+        size_hint_y: None
+        height: 150
+        min:2
+        step: 1
+        max:250
+        value:root.VALUE
+        on_touch_move:root.slider_setattr(int(self.value))
+
+
+<CustomDropDownLineWidth>:
+    canvas.before:
+        Color: 
+            rgba: .05, .05, .05, 1
+        RoundedRectangle:
+            size:(self.size[0], self.size[1])
+            pos:(self.pos[0], self.pos[1])
+            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
+    Label:
+        text:'Lines width'
+        size_hint_y: None
+        height: 50
+    MDSlider:
+        size_hint_y: None
+        height: 150
+        min:1
+        step: 1
+        max:25
+        value:root.VALUE
+        on_touch_move:root.slider_setattr(int(self.value))
+
+
+
 <ToolBox@BoxLayout>:
     size_hint:(1, .1)
     canvas.before:
@@ -51,6 +98,10 @@
             size:(self.size[0], self.size[1])
             pos:(self.pos[0], self.pos[1])
 
+<ToolBtn@MDFlatButton>:
+    background_normal:''
+    background_color:.1,.1,.1,1
+    size_hint_y:1
 
 <MyPaintWidget>:
 
@@ -92,9 +143,9 @@
         Widget:
         MDRoundFlatIconButton:
             id:drawing_mode_select_btn
-            icon:'brush'
+            icon:'settings'
             text:'Settings'
-            on_release:paint.open_draw_popup()
+            on_release:paint.open_settings_popup()
 
     ToolBox:
         size_hint:(1,.1)
@@ -103,27 +154,28 @@
         BoxLayout:
             id:box
             paddig:10
+            Widget:
             MDIconButton:
-                size_hint:.5,1
+                size_hint_y:1
                 halign: "center"
                 id:down_current_icon
                 icon:'decagram-outline'
                 on_release:paint.dropdown_drawing_mode.open(box)
-            Label:
+            ToolBtn:
                 id:down_current_nums_of_lines
                 text:'Lines\n10'
-            Label:
+                on_release:paint.number_of_lines_dropdown.open(box)
+            ToolBtn:
                 id:down_current_line_width
                 text:'Width\n2'
-            Button:
+                on_release:paint.line_width_dropdown.open(box)
+            ToolBtn:
                 id:down_current_color_label
-                size_hint:.5,1
-                background_normal:''
                 background_color:.1,.1,.1,1
                 on_release:paint.open_color_popup()
-                #user_font_size:'10sp'
                 canvas:
                     RoundedRectangle:
                         size:(self.size[0]-20, self.size[1]-20)
                         pos:(self.pos[0]+10, self.pos[1]+10)
                         radius: [(10, 10), (10, 10), (10, 10), (10, 10)]
+            Widget:

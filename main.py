@@ -5,7 +5,7 @@ from kivymd.uix.button import MDRectangleFlatButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, InstructionGroup
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, NumericProperty
 from kivymd.app import MDApp
 from kivy.uix.dropdown import DropDown
 from kivy.uix.popup import Popup
@@ -29,14 +29,35 @@ Clock.schedule_once(set_bg, 1)
 class MyPopup(Popup):
     pass
 
-class CustomDropDown(DropDown):
+
+class CustomDropDownDrawingMode(DropDown):
     pass
+
+
+class CustomDropDownNumberOfLines(DropDown):
+    VALUE = NumericProperty()
+    def __init__(self, value, paint, **kwargs):
+        super().__init__(**kwargs)
+        self.VALUE = value
+        self.paint = paint
+    
+    def slider_setattr(self, value):
+        self.paint.set_number_of_lines(value)
+
+
+class CustomDropDownLineWidth(DropDown):
+    VALUE = NumericProperty()
+    def __init__(self, value, paint, **kwargs):
+        super().__init__(**kwargs)
+        self.VALUE = value
+        self.paint = paint
+    
+    def slider_setattr(self, value):
+        self.paint.set_line_width(value)
+
 
 class Container(FloatLayout):
     pass
-
-
-
 
 
 class MyPaintWidget(Widget):
@@ -59,82 +80,58 @@ class MyPaintWidget(Widget):
         super().__init__(**kwargs)
         self.size_hint=None,None
         self.create_color_popup()
-        self.create_draw_popup()
+        self.create_settings_popup()
+        self.create_number_of_lines_dropdown()
+        self.create_drawing_mode_dropdown()
+        self.create_lines_width_dropdown()
 
 
     #-----------------------#
     #-Settings Popup window-#
     #-----------------------#
-    def create_draw_popup(self):
+    
+    def create_settings_popup(self):
         '''Creating a drawing settings window'''
-        
-        def _create_slider(name, min_value, max_value, base_value, func):
-            '''Box with slider'''
-            main_box = BoxLayout(orientation='vertical',size_hint=(1,.9))
-            slider_box = BoxLayout()
-            info_label = Label(text=name, size_hint=(1,.5))
-            slider_lbl = Label(text=str(base_value), size_hint=(.3,1))
-            slider = MDSlider(min=min_value, max=max_value, value=base_value, on_touch_move=lambda this, touch : func(int(this.value)))
-            slider_box.add_widget(slider_lbl)
-            slider_box.add_widget(slider)
-            main_box.add_widget(info_label)
-            main_box.add_widget(slider_box)
-            return main_box, slider, slider_lbl
-        
-        self.create_drawing_mode_dropdown()
-        self.draw_popup = MyPopup()
-        self.draw_popup.title = 'Settings for drawing'
-        bxl = BoxLayout(orientation='vertical', padding=15)
-        # drawing mode
-        dr_box = BoxLayout()
-        self.curent_drawing_mode_icon = MDIconButton(icon='decagram-outline')
-        self.drawing_mode_dropdown_open_btn = MDRoundFlatButton(text='drawing type' ,on_release=lambda instance: self.dropdown_drawing_mode.open(instance), size_hint=(.1,.6))
-        dr_box.add_widget(self.drawing_mode_dropdown_open_btn)
-        dr_box.add_widget(Widget(size_hint=(.03,1)))
-        dr_box.add_widget(self.curent_drawing_mode_icon)
-        bxl.add_widget(dr_box)
-        bxl.add_widget(Widget())
-        # sliders
-        num_box, _, self.number_of_lines_lbl = _create_slider('Lines', 2, 250, self.NUMBER_OF_LINES, self.set_number_of_lines)
-        bxl.add_widget(num_box)
-        bxl.add_widget(Widget())
-        line_box, _, self.line_width_lbl = _create_slider('Line width', 1, 25, self.LINE_WIDTH, self.set_line_width)
-        bxl.add_widget(line_box)
-        bxl.add_widget(Widget())
-        
-        # close
-        bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,.5), on_release=lambda btn: self.draw_popup.dismiss()))
-        self.draw_popup.add_widget(bxl)
+        bxl = BoxLayout()
+        self.settings_popup = Popup()
+        bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,.5), on_release=lambda btn: self.settings_popup.dismiss()))
+        self.settings_popup.add_widget(bxl)
 
 
-    def open_draw_popup(self):
+    def open_settings_popup(self):
         '''open popup window'''
-        self.draw_popup.open()
+        self.settings_popup.open()
 
+
+    #---------------------#
+    #------DropDowns------#
+    #---------------------#
 
     def create_drawing_mode_dropdown(self):
         '''creating a menu for switching drawing modes'''
-        self.dropdown_drawing_mode = CustomDropDown()
-        self.dropdown_drawing_mode.bind(on_select=lambda instance, x: self.drawing_mode_custom_setattr(x[0], x[1]) )
+        self.dropdown_drawing_mode = CustomDropDownDrawingMode()
+        self.dropdown_drawing_mode.bind(on_select=lambda instance, x: self.drawing_mode_custom_setattr(x[0], x[1]))
+        
+    def create_number_of_lines_dropdown(self):
+        self.number_of_lines_dropdown = CustomDropDownNumberOfLines(self.NUMBER_OF_LINES, self)
     
+    def create_lines_width_dropdown(self):
+        self.line_width_dropdown = CustomDropDownLineWidth(self.LINE_WIDTH, self)
     
-    # settings
+    # set down values
     def set_line_width(self, value):
         self.LINE_WIDTH = value
-        self.line_width_lbl.text = str(value)
         self.down_current_line_width.text = f'Width\n{value}'
 
     def set_number_of_lines(self, value):
         self.NUMBER_OF_LINES = value
-        self.number_of_lines_lbl.text = str(value)
         self.down_current_nums_of_lines.text = f'Lines\n{value}'
 
     def drawing_mode_custom_setattr(self, mode, icon):
         '''setting the current drawing mode and icon'''
-        setattr(self.curent_drawing_mode_icon, 'icon', icon)
         setattr(self.down_current_icon, 'icon', icon)
         self.DRAWING_MODE = mode
-    
+
 
     #--------------------#
     #-Color Popup window-#
@@ -225,6 +222,7 @@ class MyPaintWidget(Widget):
             self.lineslist.append(self.obj)
             self.canvas.add(self.obj)
 
+
     #------------------#
     #-SYSTEM FUNCTIONS-#
     #------------------#
@@ -247,6 +245,7 @@ class MyPaintWidget(Widget):
         self.undolist = []
         self.lineslist = []
 
+
 class MyPaintApp(MDApp):
 
     def build(self):
@@ -254,7 +253,6 @@ class MyPaintApp(MDApp):
         self.theme_cls.primary_palette = "LightBlue"
         self.theme_cls.primary_hue = "200"
         return Container()
-
 
 
 
