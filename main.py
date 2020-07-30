@@ -294,9 +294,9 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.lineslist = []
         
     def save_canvas(self):
-        name = f'MirrorArt{datetime.date.today()}-{random.randint(1,100000)}.png'
+        name = f'Art{datetime.date.today()}-{random.randint(1,100000)}.png'
         if ANDROID:
-            self.export_to_png("/sdcard/{}.png".format(name))
+            self.export_to_png("/sdcard/RadianMirrorApp{}.png".format(name))
         else:
             self.export_to_png(name)
 

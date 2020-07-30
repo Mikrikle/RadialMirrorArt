@@ -187,14 +187,17 @@
                 icon:'decagram-outline'
                 on_release:paint.dropdown_drawing_mode.open(box)
             ToolBtn:
+                size_hint_x:1
                 id:down_current_nums_of_lines
                 text:f'Lines\n{paint.NUMBER_OF_LINES}'
                 on_release:paint.number_of_lines_dropdown.open(box)
             ToolBtn:
+                size_hint_x:1
                 id:down_current_line_width
                 text:f'Width\n{paint.LINE_WIDTH}'
                 on_release:paint.line_width_dropdown.open(box)
             ToolBtn:
+                size_hint_x:1
                 id:down_current_color_label
                 background_color:.1,.1,.1,1
                 on_release:paint.open_color_popup()
