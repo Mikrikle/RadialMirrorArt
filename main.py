@@ -20,7 +20,7 @@ from kivy.uix.colorpicker import ColorPicker
 from kivymd.uix.button import MDRoundFlatButton, MDIconButton, MDRectangleFlatButton
 from kivymd.uix.slider import MDSlider
 from kivymd.uix.selectioncontrol import MDSwitch
-Window.size = (540,960)
+Window.size = (512,512)
 
 
 def set_bg(dt=None, bg=(0,0,0,1)):
@@ -286,7 +286,7 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.lineslist = []
         
     def save_canvas(self):
-        self.export_to_png(f'MirrorArt{datetime.datetime}-{random.randint(1000,100000)}.png')
+        self.export_to_png(f'MirrorArt{datetime.datetime.today()}-{random.randint(1000,100000)}.png')
 
 
 class MyPaintApp(MDApp):
