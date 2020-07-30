@@ -10,7 +10,7 @@ except:
 import math
 import random
 import datetime
-from os.path import dirname, join
+import os
 
 from kivymd.app import MDApp
 from kivy.clock import Clock
@@ -296,7 +296,10 @@ class MyPaintWidget(BoxLayout, StencilView):
     def save_canvas(self):
         name = f'Art{datetime.date.today()}-{random.randint(1,100000)}.png'
         if ANDROID:
-            self.export_to_png("/sdcard/RadianMirrorApp{}.png".format(name))
+            directory = os.path.join('/sdcard', 'RadianMirrorApp')
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            self.export_to_png(os.path.join('/sdcard', 'RadianMirrorApp', name))
         else:
             self.export_to_png(name)
 
