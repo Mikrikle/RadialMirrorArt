@@ -1,5 +1,6 @@
 import math
 import random
+import datetime
 
 from kivymd.app import MDApp
 from kivy.clock import Clock
@@ -12,13 +13,13 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
+from kivy.uix.stencilview import StencilView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.colorpicker import ColorPicker
 from kivymd.uix.button import MDRoundFlatButton, MDIconButton, MDRectangleFlatButton
 from kivymd.uix.slider import MDSlider
 from kivymd.uix.selectioncontrol import MDSwitch
-
 Window.size = (540,960)
 
 
@@ -36,9 +37,11 @@ class CustomDropDownDrawingMode(DropDown):
 
 class Container(FloatLayout):
     pass
+    
 
 
 class SliderDropDown(DropDown):
+    '''Base class for fast line and color settings'''
     VALUE = NumericProperty()
     def __init__(self, value, paint, **kwargs):
         super().__init__(**kwargs)
@@ -49,6 +52,7 @@ class SliderDropDown(DropDown):
         pass
 
 class CustomDropDownNumberOfLines(SliderDropDown):
+    '''Slider dropdown for settings line'''
     def slider_setattr(self, value):
         self.paint.set_number_of_lines(value)
         
@@ -56,20 +60,22 @@ class CustomDropDownNumberOfLines(SliderDropDown):
         self.paint.IS_LINE_CLOSE = value
     
 
-
 class CustomDropDownLineWidth(SliderDropDown):
+    '''Slider dropdown for settings width'''
     def slider_setattr(self, value):
         self.paint.set_line_width(value)
 
 
 
-
-class MyPaintWidget(Widget):
+class MyPaintWidget(BoxLayout, StencilView):
     drawing_mode_select_btn = ObjectProperty()
     down_current_color_label = ObjectProperty()
     down_current_line_width = ObjectProperty()
     down_current_nums_of_lines = ObjectProperty()
     down_current_icon = ObjectProperty()
+    top_toolbox = ObjectProperty()
+    down_toolbox = ObjectProperty()
+    minimize_btn = ObjectProperty()
     undolist = [] # list of cancelled lines
     lineslist = [] # list of drawing lines
     drawing = False
@@ -83,6 +89,7 @@ class MyPaintWidget(Widget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.size=Window.size
         self.size_hint=None,None
         self.create_color_popup()
         self.create_settings_popup()
@@ -91,15 +98,33 @@ class MyPaintWidget(Widget):
         self.create_lines_width_dropdown()
 
 
+    def minimize_maximize_toolboxes(self, current):
+        if current == 'arrow-down':
+            self.top_toolbox.pos_hint = {'x': 0, 'y': 1}
+            self.down_toolbox.pos_hint = {'x': 0, 'y': -1}
+            self.minimize_btn.icon = 'arrow-up'    
+            self.minimize_btn.pos_hint = {'x':.86, 'y':.01} 
+        elif current == 'arrow-up':
+            self.top_toolbox.pos_hint = {'x': 0, 'y': 0.9}
+            self.down_toolbox.pos_hint = {'x': 0, 'y': 0}
+            self.minimize_btn.icon = 'arrow-down'    
+            self.minimize_btn.pos_hint = {'x':.86, 'y':.06} 
+
+
+
     #-----------------------#
     #-Settings Popup window-#
     #-----------------------#
     
     def create_settings_popup(self):
         '''Creating a drawing settings window'''
-        bxl = BoxLayout()
-        self.settings_popup = Popup()
-        bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,.5), on_release=lambda btn: self.settings_popup.dismiss()))
+        bxl = BoxLayout(orientation='vertical')
+        self.settings_popup = Popup(title='Menu', title_align='center', auto_dismiss=False)
+        bxl.add_widget(Widget())
+        bxl.add_widget(MDRectangleFlatButton(text='Save picture', size_hint=(1,1), on_release=lambda btn :self.save_canvas()))
+        bxl.add_widget(Widget())
+        bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,1), on_release=lambda btn: self.settings_popup.dismiss()))
+        bxl.add_widget(Widget())
         self.settings_popup.add_widget(bxl)
 
 
@@ -170,7 +195,13 @@ class MyPaintWidget(Widget):
     def on_touch_up(self, touch):
         '''disabling drawing'''
         self.drawing = False
-    
+        
+        # protection against memory overuse
+        if len(self.undolist) > 25:
+            self.undolist = self.undolist[len(self.undolist)-25:]
+        if len(self.lineslist) > 25:
+            self.lineslist = self.lineslist[len(self.lineslist)-25:]
+
     def on_touch_move(self, touch):
         '''drawing'''
         
@@ -253,6 +284,9 @@ class MyPaintWidget(Widget):
         self.canvas.clear()
         self.undolist = []
         self.lineslist = []
+        
+    def save_canvas(self):
+        self.export_to_png(f'MirrorArt{datetime.datetime}-{random.randint(1000,100000)}.png')
 
 
 class MyPaintApp(MDApp):
