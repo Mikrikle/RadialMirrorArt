@@ -1,6 +1,16 @@
+try:
+    from android.permissions import request_permissions, Permission
+    request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
+                         Permission.READ_EXTERNAL_STORAGE])
+    ANDROID = True
+except:
+    ANDROID = False
+
+
 import math
 import random
 import datetime
+from os.path import dirname, join
 
 from kivymd.app import MDApp
 from kivy.clock import Clock
@@ -20,8 +30,6 @@ from kivy.uix.colorpicker import ColorPicker
 from kivymd.uix.button import MDRoundFlatButton, MDIconButton, MDRectangleFlatButton
 from kivymd.uix.slider import MDSlider
 from kivymd.uix.selectioncontrol import MDSwitch
-Window.size = (512,512)
-
 
 def set_bg(dt=None, bg=(0,0,0,1)):
     '''make canvas black'''
@@ -81,8 +89,8 @@ class MyPaintWidget(BoxLayout, StencilView):
     drawing = False
     
     DRAWING_MODE = 'radian'
-    NUMBER_OF_LINES = 10
-    LINE_WIDTH = 2
+    NUMBER_OF_LINES = 15
+    LINE_WIDTH = 1
     COLOR = (1,0,0,1)
     IS_LINE_CLOSE = False
     
@@ -197,10 +205,10 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.drawing = False
         
         # protection against memory overuse
-        if len(self.undolist) > 25:
-            self.undolist = self.undolist[len(self.undolist)-25:]
-        if len(self.lineslist) > 25:
-            self.lineslist = self.lineslist[len(self.lineslist)-25:]
+        if len(self.undolist) > 5:
+            self.undolist = self.undolist[len(self.undolist)-5:]
+        if len(self.lineslist) > 5:
+            self.lineslist = self.lineslist[len(self.lineslist)-5:]
 
     def on_touch_move(self, touch):
         '''drawing'''
@@ -286,7 +294,12 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.lineslist = []
         
     def save_canvas(self):
-        self.export_to_png(f'MirrorArt{datetime.datetime.today()}-{random.randint(1000,100000)}.png')
+        name = f'MirrorArt{datetime.date.today()}-{random.randint(1,100000)}.png'
+        if ANDROID:
+            self.export_to_png("/sdcard/{}.png".format(name))
+        else:
+            self.export_to_png(name)
+
 
 
 class MyPaintApp(MDApp):

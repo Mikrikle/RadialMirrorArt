@@ -6,7 +6,7 @@
     size_hint:.95,.85
 
 
-<CustomDropDownDrawingMode@DrowDownBackground>:
+<CustomDropDownDrawingMode>:
     canvas.before:
         Color: 
             rgba: .05, .05, .05, 1
@@ -15,27 +15,27 @@
             pos:(self.pos[0], self.pos[1])
             radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
     MDRoundFlatIconButton:
-        font_size: "5sp"
+        size_hint_x:1
         text:'Simple'
         icon:'current-ac'
         on_release:root.select(('simple', 'current-ac'))
     MDRoundFlatIconButton:
-        font_size: "5sp"
+        size_hint_x:1
         text:'Mirror'
         icon:'arrow-split-vertical'
         on_release:root.select(('symmetric', 'arrow-split-vertical'))
     MDRoundFlatIconButton:
-        font_size: "5sp"
+        size_hint_x:1
         text:'Double-mirror'
         icon:'crop-square'
         on_release:root.select(('square', 'crop-square'))
     MDRoundFlatIconButton:
-        font_size: "5sp"
+        size_hint_x:1
         text:'Radian'
         icon:'decagram-outline'
         on_release:root.select(('radian', 'decagram-outline'))
     MDRoundFlatIconButton:
-        font_size: "5sp"
+        size_hint_x:1
         text:'Radian-symmetric'
         icon:'decagram'
         on_release:root.select(('radian-symmetric', 'decagram'))
@@ -52,7 +52,7 @@
             radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
     BoxLayout:
         size_hint_y: None
-        height: 55
+        height: 155
         Widget:
         Label:
             text:'close the lines?'
@@ -180,7 +180,6 @@
         BoxLayout:
             id:box
             paddig:10
-            Widget:
             MDIconButton:
                 size_hint_y:1
                 halign: "center"
@@ -189,11 +188,11 @@
                 on_release:paint.dropdown_drawing_mode.open(box)
             ToolBtn:
                 id:down_current_nums_of_lines
-                text:'Lines\n10'
+                text:f'Lines\n{paint.NUMBER_OF_LINES}'
                 on_release:paint.number_of_lines_dropdown.open(box)
             ToolBtn:
                 id:down_current_line_width
-                text:'Width\n2'
+                text:f'Width\n{paint.LINE_WIDTH}'
                 on_release:paint.line_width_dropdown.open(box)
             ToolBtn:
                 id:down_current_color_label
