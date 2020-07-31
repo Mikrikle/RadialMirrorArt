@@ -6,19 +6,23 @@ try:
 except:
     ANDROID = False
 
-
 import math
 import random
 import datetime
 import os
 
+from gradient import GRADIENT_DATA_BRIGHTER, GRADIENT_DATA_DARKER
+
 from kivymd.app import MDApp
+from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.animation import Animation
+from kivy.graphics import Color, Line, InstructionGroup, Rectangle
+from kivy.graphics.texture import Texture
+from kivy.properties import ObjectProperty, NumericProperty, ListProperty
+
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivy.graphics import Color, Line, InstructionGroup
-from kivy.core.window import Window
-from kivy.properties import ObjectProperty, NumericProperty
 from kivy.uix.dropdown import DropDown
 from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
@@ -30,6 +34,8 @@ from kivy.uix.colorpicker import ColorPicker
 from kivymd.uix.button import MDRoundFlatButton, MDIconButton, MDRectangleFlatButton
 from kivymd.uix.slider import MDSlider
 from kivymd.uix.selectioncontrol import MDSwitch
+from kivymd.uix.snackbar import Snackbar
+
 
 def set_bg(dt=None, bg=(0,0,0,1)):
     '''make canvas black'''
@@ -40,17 +46,75 @@ Clock.schedule_once(set_bg, 1)
 class MyPopup(Popup):
     pass
 
+
 class CustomDropDownDrawingMode(DropDown):
     pass
 
+
 class Container(FloatLayout):
     pass
+
+
+class SettingsPopup(Popup):
+    VALUE = NumericProperty()
+    def __init__(self, paint, **kwargs):
+        super().__init__(**kwargs)
+        self.paint = paint
+        self.color_popup = ColorPopup('Colors', self.paint)
+        
+    def set_effects(self, value):
+        self.paint.BLUUR_SIZE = value
+
+    def save_canvas(self):
+        self.paint.save_canvas()
+
+
+class ColorPopup(Popup):
+    colorbox = ObjectProperty()
+    no_bg_switch = ObjectProperty()
+
+    def __init__(self, title, paint, **kwargs):
+        super().__init__(**kwargs)
+        self.paint = paint
+        self.title = title
+        self.colorpicker = ColorPicker(color=self.paint.BACKGROUND_COLOR)
+        self.colorbox.add_widget(self.colorpicker)
+        self.colorbox.add_widget(MDRectangleFlatButton(size_hint=(1,.1), text='Close', on_release=lambda btn:self.dismiss()))
+        
+    def set_bg(self):
+        if self.no_bg_switch.active:
+            Window.clearcolor = list(self.colorpicker.color)
+            sself.paint.canvas.before.get_group('background')[0].a = 0
+        else:
+            current_bg = self.paint.canvas.before.get_group('background')[0]
+            current_bg.r = self.colorpicker.color[0]
+            current_bg.g = self.colorpicker.color[1]
+            current_bg.b =self.colorpicker.color[2]
+            current_bg.a = self.colorpicker.color[3]
+            self.paint.BACKGROUND_COLOR = self.colorpicker.color
     
+    def set_center(self):
+        current_center = self.paint.canvas.before.get_group('center')[0]
+        current_center.r = self.colorpicker.color[0]
+        current_center.g = self.colorpicker.color[1]
+        current_center.b =self.colorpicker.color[2]
+        current_center.a = self.colorpicker.color[3]
+        self.paint.CENTER_COLOR = self.colorpicker.color
+
+    
+    def disable_bg(self):
+        if self.no_bg_switch.active:
+            Window.clearcolor = list(self.paint.BACKGROUND_COLOR)
+            self.paint.canvas.before.get_group('background')[0].a = 0
+        else:
+            Window.clearcolor = (0,0,0,1)
+            self.paint.canvas.before.get_group('background')[0].a = 1
 
 
 class SliderDropDown(DropDown):
     '''Base class for fast line and color settings'''
     VALUE = NumericProperty()
+    HEIGHT = NumericProperty(Window.size[1]//2)
     def __init__(self, value, paint, **kwargs):
         super().__init__(**kwargs)
         self.VALUE = value
@@ -59,6 +123,7 @@ class SliderDropDown(DropDown):
     def slider_setattr(self, value):
         pass
 
+
 class CustomDropDownNumberOfLines(SliderDropDown):
     '''Slider dropdown for settings line'''
     def slider_setattr(self, value):
@@ -66,7 +131,7 @@ class CustomDropDownNumberOfLines(SliderDropDown):
         
     def set_close_lines(self, value):
         self.paint.IS_LINE_CLOSE = value
-    
+
 
 class CustomDropDownLineWidth(SliderDropDown):
     '''Slider dropdown for settings width'''
@@ -74,8 +139,7 @@ class CustomDropDownLineWidth(SliderDropDown):
         self.paint.set_line_width(value)
 
 
-
-class MyPaintWidget(BoxLayout, StencilView):
+class MyPaintWidget(Widget):
     drawing_mode_select_btn = ObjectProperty()
     down_current_color_label = ObjectProperty()
     down_current_line_width = ObjectProperty()
@@ -87,13 +151,16 @@ class MyPaintWidget(BoxLayout, StencilView):
     undolist = [] # list of cancelled lines
     lineslist = [] # list of drawing lines
     drawing = False
-    
+
     DRAWING_MODE = 'radian'
     NUMBER_OF_LINES = 15
     LINE_WIDTH = 1
     COLOR = (1,0,0,1)
+    BACKGROUND_COLOR = ListProperty([0, 0, 0, 1])
+    CENTER_COLOR = ListProperty([.5,.5,.5,1])
     IS_LINE_CLOSE = False
-    
+    TEXTURE = GRADIENT_DATA_BRIGHTER
+    BLUUR_SIZE = NumericProperty(0)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -104,21 +171,40 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.create_number_of_lines_dropdown()
         self.create_drawing_mode_dropdown()
         self.create_lines_width_dropdown()
+        self.init_animations()
+        self.create_snackbars()
+        self.init_texture()
 
+    def init_texture(self):
+        self.tex = Texture.create(size=(1, 64), colorfmt='rgb', bufferfmt='ubyte')
+        self.tex.blit_buffer(self.TEXTURE, colorfmt='rgb')
+
+    def create_snackbars(self):
+        '''Snackbars with saving info'''
+        self.snackbar_success = Snackbar(text='Successful saving!')
+        self.snackbar_error = Snackbar()
+
+    def init_animations(self):
+        self.minimize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.01}, t='in_out_back', duration=.35)
+        self.maximize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.06}, t='in_out_back', duration=.35)
+        self.maximize_top_toolbox_anim = Animation(pos_hint = {'x': 0, 'y': 0.9}, t='in_circ', duration=.3)
+        self.minimize_top_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 1}, t='in_circ', duration=.3)
+        self.maximize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 0}, t='in_circ', duration=.3)
+        self.minimize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': -0.1}, t='in_circ', duration=.3)
 
     def minimize_maximize_toolboxes(self, current):
         if current == 'arrow-down':
-            self.top_toolbox.pos_hint = {'x': 0, 'y': 1}
-            self.down_toolbox.pos_hint = {'x': 0, 'y': -1}
-            self.minimize_btn.icon = 'arrow-up'    
-            self.minimize_btn.pos_hint = {'x':.86, 'y':.01} 
+            # minimize
+            self.minimize_top_tollbox_anim.start(self.top_toolbox)
+            self.minimize_down_tollbox_anim.start(self.down_toolbox)
+            self.minimize_btn.icon = 'arrow-up' 
+            self.minimize_btn_anim.start(self.minimize_btn)
         elif current == 'arrow-up':
-            self.top_toolbox.pos_hint = {'x': 0, 'y': 0.9}
-            self.down_toolbox.pos_hint = {'x': 0, 'y': 0}
-            self.minimize_btn.icon = 'arrow-down'    
-            self.minimize_btn.pos_hint = {'x':.86, 'y':.06} 
-
-
+            # maximize
+            self.maximize_top_toolbox_anim.start(self.top_toolbox)
+            self.maximize_down_tollbox_anim.start(self.down_toolbox)
+            self.minimize_btn.icon = 'arrow-down'
+            self.maximize_btn_anim.start(self.minimize_btn)
 
     #-----------------------#
     #-Settings Popup window-#
@@ -126,20 +212,11 @@ class MyPaintWidget(BoxLayout, StencilView):
     
     def create_settings_popup(self):
         '''Creating a drawing settings window'''
-        bxl = BoxLayout(orientation='vertical')
-        self.settings_popup = Popup(title='Menu', title_align='center', auto_dismiss=False)
-        bxl.add_widget(Widget())
-        bxl.add_widget(MDRectangleFlatButton(text='Save picture', size_hint=(1,1), on_release=lambda btn :self.save_canvas()))
-        bxl.add_widget(Widget())
-        bxl.add_widget(MDRectangleFlatButton(text="Close", size_hint=(1,1), on_release=lambda btn: self.settings_popup.dismiss()))
-        bxl.add_widget(Widget())
-        self.settings_popup.add_widget(bxl)
-
+        self.settings_popup = SettingsPopup(self)
 
     def open_settings_popup(self):
         '''open popup window'''
         self.settings_popup.open()
-
 
     #---------------------#
     #------DropDowns------#
@@ -170,7 +247,6 @@ class MyPaintWidget(BoxLayout, StencilView):
         setattr(self.down_current_icon, 'icon', icon)
         self.DRAWING_MODE = mode
 
-
     #--------------------#
     #-Color Popup window-#
     #--------------------#
@@ -196,7 +272,6 @@ class MyPaintWidget(BoxLayout, StencilView):
         self.COLOR = value
         self.down_current_color_label.canvas.children[3] = Color(*value)
 
-
     #-------------------#
     #-DRAWING FUNCTIONS-#
     #-------------------#
@@ -212,7 +287,7 @@ class MyPaintWidget(BoxLayout, StencilView):
 
     def on_touch_move(self, touch):
         '''drawing'''
-        
+
         def vector_length(coords, center):
             return math.sqrt((coords[0]-center[0])**2 + (coords[1]-center[1])**2)
         
@@ -265,11 +340,10 @@ class MyPaintWidget(BoxLayout, StencilView):
                   'radian-symmetric':self.NUMBER_OF_LINES*2}
             
             for _ in range(lines[self.DRAWING_MODE]):
-                self.obj.add(Line(width=self.LINE_WIDTH, close=self.IS_LINE_CLOSE))
+                self.obj.add(Line(width=self.LINE_WIDTH, close=self.IS_LINE_CLOSE, texture=self.tex))
         
             self.lineslist.append(self.obj)
             self.canvas.add(self.obj)
-
 
     #------------------#
     #-SYSTEM FUNCTIONS-#
@@ -295,13 +369,18 @@ class MyPaintWidget(BoxLayout, StencilView):
         
     def save_canvas(self):
         name = f'Art{datetime.date.today()}-{random.randint(1,100000)}.png'
-        if ANDROID:
-            directory = os.path.join('/sdcard', 'RadianMirrorApp')
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            self.export_to_png(os.path.join('/sdcard', 'RadianMirrorApp', name))
-        else:
-            self.export_to_png(name)
+        try:
+            if ANDROID:
+                directory = os.path.join('/sdcard','Pictures', 'RadianMirrorApp')
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                self.parent.export_to_png(os.path.join(directory, name))
+            else:
+                self.parent.export_to_png(name)
+            self.snackbar_success.show()
+        except Exception as err:
+            self.snackbar_error.text = f'Error: "{err}"'
+            self.snackbar_error.show()
 
 
 

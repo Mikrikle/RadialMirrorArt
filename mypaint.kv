@@ -1,9 +1,97 @@
 #:kivy 1.0
+#: import ew kivy.uix.effectwidget
+
+
+<ColorPopup>:
+    colorbox:colorbox
+    no_bg_switch:no_bg_switch
+    auto_dismiss: False
+    title_align:'center'
+    size_hint:.98,.98
+    id:color_popup
+    title:'Colors'
+    BoxLayout:
+        id:colorbox
+        orientation:'vertical'
+        BoxLayout:
+            size_hint_y:.25
+            orientation:'vertical'
+            canvas.before:
+                Color: 
+                    rgba: .1, .1, .1, 1
+                RoundedRectangle:
+                    size:(self.size[0], self.size[1])
+                    pos:(self.pos[0], self.pos[1])
+                    radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
+            BoxLayout:
+                Label:
+                    text:'Save without background'
+                Widget:
+                    size_hint_x:.1
+                MDSwitch:
+                    id:no_bg_switch
+                    on_touch_down:root.disable_bg()
+                Widget:
+                    size_hint_x:.1
+        Widget:
+            size_hint_y:.05
+        BoxLayout:
+            size_hint_y:.2
+            orientation:'vertical'
+            Label:
+                text:'Select color for'
+                size_hint_y:.2
+            BoxLayout:
+                MDRectangleFlatButton:
+                    text:'background'
+                    on_release:root.set_bg()
+                MDRectangleFlatButton:
+                    text:'center'
+                    on_release:root.set_center()
+
+
 
 <MyPopup>:
     auto_dismiss: False
     title_align:'center'
     size_hint:.95,.85
+
+<SettingsPopup>:
+    title:'Menu'
+    title_align:'center'
+    size_hint:.8,.5
+    auto_dismiss:False
+    BoxLayout:
+        orientation:'vertical'
+        Widget:
+            size_hint_y:.1
+        MDRectangleFlatButton:
+            text:'Save picture'
+            on_release:root.save_canvas()
+        BoxLayout:
+            MDRectangleFlatButton:
+                text:'Change background'
+                on_release:root.color_popup.open()
+        BoxLayout:
+            Label:
+                text:'FXAA smoothing:'
+            Label:
+                size_hint_x:.2
+                text:str(round(fxaa_slider.value, 1))
+            MDSlider:
+                id:fxaa_slider
+                value:root.VALUE
+                min:0
+                max:50
+                step:0.5
+                on_touch_move:root.set_effects(round(fxaa_slider.value, 1))
+                on_touch_up:root.set_effects(round(fxaa_slider.value, 1))
+        MDRectangleFlatButton:
+            text:"Close"
+            on_release:root.dismiss()
+        Widget:
+            size_hint_y:.1
+
 
 
 <CustomDropDownDrawingMode>:
@@ -40,78 +128,98 @@
         icon:'decagram'
         on_release:root.select(('radian-symmetric', 'decagram'))
 
+<DropDownBox@BoxLayout>:
+    size_hint_y: None
+    orientation:'vertical'
+    canvas.before:
+        Color: 
+            rgba: .05, .05, .05, 1
+        RoundedRectangle:
+            size:(self.size[0], self.size[1])
+            pos:(self.pos[0], self.pos[1])
+            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
 
 
 <CustomDropDownNumberOfLines>:
-    canvas.before:
-        Color: 
-            rgba: .05, .05, .05, 1
-        RoundedRectangle:
-            size:(self.size[0], self.size[1])
-            pos:(self.pos[0], self.pos[1])
-            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
-    BoxLayout:
-        size_hint_y: None
-        height: 155
-        Widget:
-        Label:
-            text:'close the lines?'
+    DropDownBox:
+        height: root.HEIGHT
+        BoxLayout:
             size_hint_y: None
-            height: 50
+            height: root.HEIGHT//3
+            Widget:
+            Label:
+                text:'close the lines?'
+                size_hint_y: None
+                size_hint_x:.8
+                height: root.HEIGHT//4
+            Widget:
+                size_hint_x:.5
+            MDSwitch:
+                size_hint_y: None
+                height: root.HEIGHT//4
+                on_touch_up:root.set_close_lines(self.active)
+            Widget:
         Widget:
-        MDSwitch:
             size_hint_y: None
-            height: 50
-            on_touch_up:root.set_close_lines(self.active)
+            height: root.HEIGHT//6
+        BoxLayout:
+            size_hint_y: None
+            height: root.HEIGHT//3
+            BoxLayout:
+                orientation:'vertical'
+                Label:
+                    text:'Numbers of line\n[sub](For radians mods)[/sub]'
+                    markup:True
+                BoxLayout:
+                    MDIconButton:
+                        icon:'arrow-left'
+                        on_release: if num_slider.value > 2 : num_slider.value -= 1
+                    MDSlider:
+                        id:num_slider
+                        min:2
+                        step: 1
+                        max:250
+                        value:root.VALUE
+                        on_touch_move:root.slider_setattr(int(self.value))
+                        on_touch_up:root.slider_setattr(int(self.value))
+                    MDIconButton:
+                        icon:'arrow-right'
+                        on_release: if num_slider.value < 250 : num_slider.value += 1
         Widget:
-    Widget:
-        size_hint_y: None
-        height: 45
-    Label:
-        text:'Numbers of line\n[sub](For radians mods)[/sub]'
-        markup:True
-        size_hint_y: None
-        height: 50
-    MDSlider:
-        size_hint_y: None
-        height: 100
-        min:2
-        step: 1
-        max:250
-        value:root.VALUE
-        on_touch_move:root.slider_setattr(int(self.value))
-        on_touch_up:root.slider_setattr(int(self.value))
-
+            size_hint_y: None
+            height: root.HEIGHT//6
 
 <CustomDropDownLineWidth>:
-    canvas.before:
-        Color: 
-            rgba: .05, .05, .05, 1
-        RoundedRectangle:
-            size:(self.size[0], self.size[1])
-            pos:(self.pos[0], self.pos[1])
-            radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
-    Widget:
-        size_hint_y: None
-        height: 50
-    Label:
-        text:'Lines width'
-        size_hint_y: None
-        height: 50
-    MDSlider:
-        size_hint_y: None
-        height: 150
-        min:1
-        step: 1
-        max:25
-        value:root.VALUE
-        on_touch_move:root.slider_setattr(int(self.value))
-        on_touch_up:root.slider_setattr(int(self.value))
-
+    DropDownBox:
+        height: root.HEIGHT//2
+        BoxLayout:
+            size_hint_y: None
+            height: root.HEIGHT//3
+            BoxLayout:
+                orientation:'vertical'
+                Label:
+                    text:'Lines width'
+                BoxLayout:
+                    MDIconButton:
+                        icon:'arrow-left'
+                        on_release: if width_slider.value > 1 : width_slider.value -= 1
+                    MDSlider:
+                        id:width_slider
+                        min:1
+                        step: 1
+                        max:50
+                        value:root.VALUE
+                        on_touch_move:root.slider_setattr(int(self.value))
+                        on_touch_up:root.slider_setattr(int(self.value))
+                    MDIconButton:
+                        icon:'arrow-right'
+                        on_release: if width_slider.value < 50 : width_slider.value += 1
+        Widget:
+            size_hint_y: None
+            height: root.HEIGHT//6
 
 
 <ToolBox@BoxLayout>:
-    size_hint:(1, .1)
     canvas.before:
         Color: 
             rgba: .1, .1, .1, 1
@@ -128,29 +236,42 @@
 
 <Container>:
     paint:paint
-    MyPaintWidget:
-        id:paint
-        top_toolbox:top_toolbox
-        down_toolbox:down_toolbox
-        down_current_color_label:down_current_color_label
-        down_current_line_width:down_current_line_width
-        down_current_nums_of_lines:down_current_nums_of_lines
-        drawing_mode_select_btn:drawing_mode_select_btn
-        down_current_icon:down_current_icon
-        minimize_btn:minimize_btn
-        pos_hint:{'x':0, 'y':0}
-        size_hint:(1,1)
-        canvas.before:
-            Color: 
-                rgba: .5, .5, .5, 1
-            Rectangle:
-                size:(2, 2)
-                pos:(self.size[0]//2-1, self.size[1]//2-1)
+    EffectWidget:
+        id:effects_widget
+        effects: ew.HorizontalBlurEffect(size=paint.BLUUR_SIZE), ew.VerticalBlurEffect(size=paint.BLUUR_SIZE), ew.FXAAEffect()
+        MyPaintWidget:
+            id:paint
+            top_toolbox:top_toolbox
+            down_toolbox:down_toolbox
+            down_current_color_label:down_current_color_label
+            down_current_line_width:down_current_line_width
+            down_current_nums_of_lines:down_current_nums_of_lines
+            drawing_mode_select_btn:drawing_mode_select_btn
+            down_current_icon:down_current_icon
+            minimize_btn:minimize_btn
+            pos_hint:{'x':0, 'y':0}
+            size_hint:(1,1)
+            canvas.before:
+                Color:
+                    group: 'background'
+                    rgba: paint.BACKGROUND_COLOR
+                Rectangle:
+                    group: 'background'
+                    size: self.size
+                    pos: self.pos
+                Color:
+                    group: 'center'
+                    rgba: paint.CENTER_COLOR
+                Rectangle:
+                    group: 'center'
+                    size:(2, 2)
+                    pos:(self.size[0]//2-1, self.size[1]//2-1)
 
 
     ToolBox:
         id:top_toolbox
         pos_hint:{'x':0, 'y':.9}
+        size_hint:(1,.1)
         padding:20
         MDIconButton:
             icon:'delete'
@@ -174,7 +295,7 @@
 
     ToolBox:
         id:down_toolbox
-        size_hint:(1,.1)
+        size_hint:(1,.09)
         paddig:5
         pos_hint:{'x':0, 'y':0}
         BoxLayout:
@@ -211,8 +332,8 @@
     MDFloatingActionButton:
         id:minimize_btn
         icon:'arrow-down'
-        md_bg_color:.05,.05,.05,1
-        text_color: app.theme_cls.primary_color
+        md_bg_color:app.theme_cls.primary_color
+        text_color: .05,.05,.05,1
         user_font_size: "10sp"
-        pos_hint:{'x':.86, 'y':.06}
+        pos_hint:{'x':.85, 'y':.06}
         on_release:paint.minimize_maximize_toolboxes(self.icon)
