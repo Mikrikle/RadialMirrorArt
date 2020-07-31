@@ -44,24 +44,28 @@ Clock.schedule_once(set_bg, 1)
 
 
 class MyPopup(Popup):
+    '''preparation for some popups'''
     pass
 
 
 class CustomDropDownDrawingMode(DropDown):
+    '''base class for lower drop-down elements'''
     pass
 
 
 class Container(FloatLayout):
+    '''main app class'''
     pass
 
 
 class SettingsPopup(Popup):
+    '''Popup menu and app settings'''
     VALUE = NumericProperty()
     def __init__(self, paint, **kwargs):
         super().__init__(**kwargs)
         self.paint = paint
         self.color_popup = ColorPopup('Colors', self.paint)
-        
+
     def set_effects(self, value):
         self.paint.BLUUR_SIZE = value
 
@@ -70,6 +74,7 @@ class SettingsPopup(Popup):
 
 
 class ColorPopup(Popup):
+    '''Color selector for background and center point'''
     colorbox = ObjectProperty()
     no_bg_switch = ObjectProperty()
 
@@ -82,6 +87,7 @@ class ColorPopup(Popup):
         self.colorbox.add_widget(MDRectangleFlatButton(size_hint=(1,.1), text='Close', on_release=lambda btn:self.dismiss()))
         
     def set_bg(self):
+        '''sets the background to the selected color'''
         if self.no_bg_switch.active:
             Window.clearcolor = list(self.colorpicker.color)
             sself.paint.canvas.before.get_group('background')[0].a = 0
@@ -92,8 +98,9 @@ class ColorPopup(Popup):
             current_bg.b =self.colorpicker.color[2]
             current_bg.a = self.colorpicker.color[3]
             self.paint.BACKGROUND_COLOR = self.colorpicker.color
-    
+
     def set_center(self):
+        '''sets the center point to the selected color'''
         current_center = self.paint.canvas.before.get_group('center')[0]
         current_center.r = self.colorpicker.color[0]
         current_center.g = self.colorpicker.color[1]
@@ -101,9 +108,9 @@ class ColorPopup(Popup):
         current_center.a = self.colorpicker.color[3]
         self.paint.CENTER_COLOR = self.colorpicker.color
 
-    
     def disable_bg(self):
-        if self.no_bg_switch.active:
+        '''makes the background invisible for saving or turns it back on'''
+        if not self.no_bg_switch.active:
             Window.clearcolor = list(self.paint.BACKGROUND_COLOR)
             self.paint.canvas.before.get_group('background')[0].a = 0
         else:
@@ -120,9 +127,6 @@ class SliderDropDown(DropDown):
         self.VALUE = value
         self.paint = paint
 
-    def slider_setattr(self, value):
-        pass
-
 
 class CustomDropDownNumberOfLines(SliderDropDown):
     '''Slider dropdown for settings line'''
@@ -130,6 +134,7 @@ class CustomDropDownNumberOfLines(SliderDropDown):
         self.paint.set_number_of_lines(value)
         
     def set_close_lines(self, value):
+        '''activates the end of the line at the start point'''
         self.paint.IS_LINE_CLOSE = value
 
 
@@ -148,10 +153,11 @@ class MyPaintWidget(Widget):
     top_toolbox = ObjectProperty()
     down_toolbox = ObjectProperty()
     minimize_btn = ObjectProperty()
+    
     undolist = [] # list of cancelled lines
     lineslist = [] # list of drawing lines
     drawing = False
-
+    # settings
     DRAWING_MODE = 'radian'
     NUMBER_OF_LINES = 15
     LINE_WIDTH = 1
@@ -160,7 +166,7 @@ class MyPaintWidget(Widget):
     CENTER_COLOR = ListProperty([.5,.5,.5,1])
     IS_LINE_CLOSE = False
     TEXTURE = GRADIENT_DATA_BRIGHTER
-    BLUUR_SIZE = NumericProperty(0)
+    BLUUR_SIZE = NumericProperty(0.1)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -176,6 +182,7 @@ class MyPaintWidget(Widget):
         self.init_texture()
 
     def init_texture(self):
+        '''create texture for lines'''
         self.tex = Texture.create(size=(1, 64), colorfmt='rgb', bufferfmt='ubyte')
         self.tex.blit_buffer(self.TEXTURE, colorfmt='rgb')
 
@@ -185,6 +192,7 @@ class MyPaintWidget(Widget):
         self.snackbar_error = Snackbar()
 
     def init_animations(self):
+        '''create tollbox minimize animations'''
         self.minimize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.01}, t='in_out_back', duration=.35)
         self.maximize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.06}, t='in_out_back', duration=.35)
         self.maximize_top_toolbox_anim = Animation(pos_hint = {'x': 0, 'y': 0.9}, t='in_circ', duration=.3)
