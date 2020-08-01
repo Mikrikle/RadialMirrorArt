@@ -21,6 +21,7 @@ from kivy.graphics import Color, Line, InstructionGroup, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty
 
+import kivy.uix.effectwidget as ew
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -55,19 +56,25 @@ class CustomDropDownDrawingMode(DropDown):
 
 class Container(FloatLayout):
     '''main app class'''
-    pass
 
 
 class SettingsPopup(Popup):
     '''Popup menu and app settings'''
-    VALUE = NumericProperty()
+    FXAA = NumericProperty()
+    PIXILIZATION = NumericProperty()
+    
     def __init__(self, paint, **kwargs):
         super().__init__(**kwargs)
+        self.FXAA = paint.BLUUR_SIZE
+        self.PIXILIZATION = paint.PIXEL_SIZE
         self.paint = paint
         self.color_popup = ColorPopup('Colors', self.paint)
 
-    def set_effects(self, value):
-        self.paint.BLUUR_SIZE = value
+    def set_effects(self, effect_name, value):
+        if effect_name == 'FXAA':
+            self.paint.BLUUR_SIZE = value
+        elif effect_name == 'Pixilixation':
+            self.paint.PIXEL_SIZE = value
 
     def save_canvas(self):
         self.paint.save_canvas()
@@ -77,40 +84,40 @@ class ColorPopup(Popup):
     '''Color selector for background and center point'''
     colorbox = ObjectProperty()
     no_bg_switch = ObjectProperty()
+    no_center_point_switch = ObjectProperty()
 
     def __init__(self, title, paint, **kwargs):
         super().__init__(**kwargs)
         self.paint = paint
         self.title = title
         self.colorpicker = ColorPicker(color=self.paint.BACKGROUND_COLOR)
+        self.colorpicker.bind(color=self.set_bg)
         self.colorbox.add_widget(self.colorpicker)
         self.colorbox.add_widget(MDRectangleFlatButton(size_hint=(1,.1), text='Close', on_release=lambda btn:self.dismiss()))
         
-    def set_bg(self):
+    def set_bg(self, instance, value):
         '''sets the background to the selected color'''
         if self.no_bg_switch.active:
-            Window.clearcolor = list(self.colorpicker.color)
-            sself.paint.canvas.before.get_group('background')[0].a = 0
+            Window.clearcolor = list(value)
+            self.paint.canvas.before.get_group('background')[0].a = 0
         else:
             current_bg = self.paint.canvas.before.get_group('background')[0]
-            current_bg.r = self.colorpicker.color[0]
-            current_bg.g = self.colorpicker.color[1]
-            current_bg.b =self.colorpicker.color[2]
-            current_bg.a = self.colorpicker.color[3]
-            self.paint.BACKGROUND_COLOR = self.colorpicker.color
+            current_bg.r = value[0]
+            current_bg.g = value[1]
+            current_bg.b = value[2]
+            current_bg.a = value[3]
+            self.paint.BACKGROUND_COLOR = value
 
-    def set_center(self):
-        '''sets the center point to the selected color'''
-        current_center = self.paint.canvas.before.get_group('center')[0]
-        current_center.r = self.colorpicker.color[0]
-        current_center.g = self.colorpicker.color[1]
-        current_center.b =self.colorpicker.color[2]
-        current_center.a = self.colorpicker.color[3]
-        self.paint.CENTER_COLOR = self.colorpicker.color
+    def disable_center_point(self):
+        '''on off center point'''
+        if self.no_center_point_switch.active:
+            self.paint.canvas.before.get_group('center')[0].a = 0
+        else:
+            self.paint.canvas.before.get_group('center')[0].a = 1
 
     def disable_bg(self):
         '''makes the background invisible for saving or turns it back on'''
-        if not self.no_bg_switch.active:
+        if self.no_bg_switch.active:
             Window.clearcolor = list(self.paint.BACKGROUND_COLOR)
             self.paint.canvas.before.get_group('background')[0].a = 0
         else:
@@ -167,6 +174,7 @@ class MyPaintWidget(Widget):
     IS_LINE_CLOSE = False
     TEXTURE = GRADIENT_DATA_BRIGHTER
     BLUUR_SIZE = NumericProperty(0.1)
+    PIXEL_SIZE = NumericProperty(1)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -193,12 +201,12 @@ class MyPaintWidget(Widget):
 
     def init_animations(self):
         '''create tollbox minimize animations'''
-        self.minimize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.01}, t='in_out_back', duration=.35)
-        self.maximize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.06}, t='in_out_back', duration=.35)
-        self.maximize_top_toolbox_anim = Animation(pos_hint = {'x': 0, 'y': 0.9}, t='in_circ', duration=.3)
-        self.minimize_top_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 1}, t='in_circ', duration=.3)
-        self.maximize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 0}, t='in_circ', duration=.3)
-        self.minimize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': -0.1}, t='in_circ', duration=.3)
+        self.minimize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.01}, t='in_out_back', duration=.15)
+        self.maximize_btn_anim = Animation(pos_hint = {'x':.85, 'y':.06}, t='in_out_back', duration=.15)
+        self.maximize_top_toolbox_anim = Animation(pos_hint = {'x': 0, 'y': 0.9}, t='in_circ', duration=.1)
+        self.minimize_top_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 1}, t='in_circ', duration=.1)
+        self.maximize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': 0}, t='in_circ', duration=.1)
+        self.minimize_down_tollbox_anim = Animation(pos_hint = {'x': 0, 'y': -0.1}, t='in_circ', duration=.1)
 
     def minimize_maximize_toolboxes(self, current):
         if current == 'arrow-down':

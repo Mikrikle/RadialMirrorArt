@@ -5,16 +5,17 @@
 <ColorPopup>:
     colorbox:colorbox
     no_bg_switch:no_bg_switch
+    no_center_point_switch:no_center_point_switch
     auto_dismiss: False
     title_align:'center'
-    size_hint:.98,.98
+    size_hint:.9,.8
     id:color_popup
     title:'Colors'
     BoxLayout:
         id:colorbox
         orientation:'vertical'
         BoxLayout:
-            size_hint_y:.25
+            size_hint_y:.3
             orientation:'vertical'
             canvas.before:
                 Color: 
@@ -30,25 +31,27 @@
                     size_hint_x:.1
                 MDSwitch:
                     id:no_bg_switch
-                    on_touch_down:root.disable_bg()
+                    on_active:root.disable_bg()
+                Widget:
+                    size_hint_x:.1
+            BoxLayout:
+                Label:
+                    text:'Off center point'
+                Widget:
+                    size_hint_x:.1
+                MDSwitch:
+                    id:no_center_point_switch
+                    on_active:root.disable_center_point()
                 Widget:
                     size_hint_x:.1
         Widget:
             size_hint_y:.05
         BoxLayout:
-            size_hint_y:.2
+            size_hint_y:.15
             orientation:'vertical'
             Label:
-                text:'Select color for'
+                text:'Select color for background'
                 size_hint_y:.2
-            BoxLayout:
-                MDRectangleFlatButton:
-                    text:'background'
-                    on_release:root.set_bg()
-                MDRectangleFlatButton:
-                    text:'center'
-                    on_release:root.set_center()
-
 
 
 <MyPopup>:
@@ -59,12 +62,13 @@
 <SettingsPopup>:
     title:'Menu'
     title_align:'center'
-    size_hint:.8,.5
+    size_hint:.8,.6
     auto_dismiss:False
     BoxLayout:
+        paddig:20
         orientation:'vertical'
         Widget:
-            size_hint_y:.1
+            size_hint_y:.05
         MDRectangleFlatButton:
             text:'Save picture'
             on_release:root.save_canvas()
@@ -72,20 +76,51 @@
             MDRectangleFlatButton:
                 text:'Change background'
                 on_release:root.color_popup.open()
+        Widget:
+            size_hint_y:.05
         BoxLayout:
+            orientation:'vertical'
+            canvas.before:
+                Color: 
+                    rgba: .1, .1, .1, 1
+                RoundedRectangle:
+                    size:(self.size[0], self.size[1])
+                    pos:(self.pos[0], self.pos[1])
+                    radius: [(20, 20), (20, 20), (20, 20), (20, 20)]
             Label:
-                text:'FXAA smoothing:'
-            Label:
-                size_hint_x:.2
-                text:str(round(fxaa_slider.value, 1))
-            MDSlider:
-                id:fxaa_slider
-                value:root.VALUE
-                min:0
-                max:50
-                step:0.5
-                on_touch_move:root.set_effects(round(fxaa_slider.value, 1))
-                on_touch_up:root.set_effects(round(fxaa_slider.value, 1))
+                text:'Effects'
+            BoxLayout:
+                Label:
+                    text:'FXAA smoothing:'
+                Label:
+                    size_hint_x:.2
+                    text:str(round(fxaa_slider.value, 1))
+                MDSlider:
+                    id:fxaa_slider
+                    value:root.FXAA
+                    min:0
+                    max:50
+                    step:0.5
+                    on_touch_move:root.set_effects('FXAA', round(fxaa_slider.value, 1))
+                    on_touch_up:root.set_effects('FXAA', round(fxaa_slider.value, 1))
+            BoxLayout:
+                Label:
+                    text:'Pixilixation:'
+                Label:
+                    size_hint_x:.2
+                    text:str(int(pixilization_slider.value))
+                MDSlider:
+                    id:pixilization_slider
+                    value:root.PIXILIZATION
+                    min:1
+                    max:200
+                    step:1
+                    on_touch_move:root.set_effects('Pixilixation', pixilization_slider.value)
+                    on_touch_up:root.set_effects('Pixilixation', pixilization_slider.value)
+            Widget:
+                size_hint_y:.2
+        Widget:
+            size_hint_y:.1
         MDRectangleFlatButton:
             text:"Close"
             on_release:root.dismiss()
@@ -157,7 +192,7 @@
             MDSwitch:
                 size_hint_y: None
                 height: root.HEIGHT//4
-                on_touch_up:root.set_close_lines(self.active)
+                on_active:root.set_close_lines(self.active)
             Widget:
         Widget:
             size_hint_y: None
@@ -236,9 +271,10 @@
 
 <Container>:
     paint:paint
+    effects_widget:effects_widget
     EffectWidget:
         id:effects_widget
-        effects: ew.HorizontalBlurEffect(size=paint.BLUUR_SIZE), ew.VerticalBlurEffect(size=paint.BLUUR_SIZE), ew.FXAAEffect()
+        effects: ew.HorizontalBlurEffect(size=paint.BLUUR_SIZE), ew.VerticalBlurEffect(size=paint.BLUUR_SIZE), ew.FXAAEffect(), ew.PixelateEffect(pixel_size=paint.PIXEL_SIZE)
         MyPaintWidget:
             id:paint
             top_toolbox:top_toolbox
@@ -334,6 +370,6 @@
         icon:'arrow-down'
         md_bg_color:app.theme_cls.primary_color
         text_color: .05,.05,.05,1
-        user_font_size: "10sp"
+        user_font_size: "5sp"
         pos_hint:{'x':.85, 'y':.06}
         on_release:paint.minimize_maximize_toolboxes(self.icon)
