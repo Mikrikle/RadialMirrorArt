@@ -64,6 +64,7 @@
     title_align:'center'
     size_hint:.8,.6
     auto_dismiss:False
+    opacity:.8
     BoxLayout:
         paddig:20
         orientation:'vertical'
@@ -130,6 +131,7 @@
 
 
 <CustomDropDownDrawingMode>:
+    opacity:.8
     canvas.before:
         Color: 
             rgba: .05, .05, .05, 1
@@ -176,6 +178,7 @@
 
 
 <CustomDropDownNumberOfLines>:
+    opacity:.8
     DropDownBox:
         height: root.HEIGHT
         BoxLayout:
@@ -225,6 +228,7 @@
             height: root.HEIGHT//6
 
 <CustomDropDownLineWidth>:
+    opacity:.8
     DropDownBox:
         height: root.HEIGHT//2
         BoxLayout:
@@ -368,7 +372,7 @@
     MDFloatingActionButton:
         id:minimize_btn
         icon:'arrow-down'
-        md_bg_color:app.theme_cls.primary_color
+        md_bg_color:app.theme_cls.primary_dark
         text_color: .05,.05,.05,1
         user_font_size: "5sp"
         pos_hint:{'x':.85, 'y':.06}

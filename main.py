@@ -168,7 +168,7 @@ class MyPaintWidget(Widget):
     DRAWING_MODE = 'radian'
     NUMBER_OF_LINES = 15
     LINE_WIDTH = 1
-    COLOR = (1,0,0,1)
+    COLOR = (.32,.5,1,1)
     BACKGROUND_COLOR = ListProperty([0, 0, 0, 1])
     CENTER_COLOR = ListProperty([.5,.5,.5,1])
     IS_LINE_CLOSE = False
@@ -387,7 +387,7 @@ class MyPaintWidget(Widget):
         name = f'Art{datetime.date.today()}-{random.randint(1,100000)}.png'
         try:
             if ANDROID:
-                directory = os.path.join('/sdcard','Pictures', 'RadianMirrorApp')
+                directory = os.path.join('/sdcard', 'RadianMirrorApp')
                 if not os.path.exists(directory):
                     os.makedirs(directory)
                 self.parent.export_to_png(os.path.join(directory, name))
@@ -400,15 +400,15 @@ class MyPaintWidget(Widget):
 
 
 
-class MyPaintApp(MDApp):
+class RadianMirrorArtApp(MDApp):
 
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "LightBlue"
-        self.theme_cls.primary_hue = "200"
+        self.theme_cls.primary_hue = "300"
         return Container()
 
 
 
 if __name__ == '__main__':
-    MyPaintApp().run()
+    RadianMirrorArtApp().run()
