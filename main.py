@@ -56,6 +56,7 @@ class CustomDropDownDrawingMode(DropDown):
 
 class Container(FloatLayout):
     '''main app class'''
+    pass
 
 
 class SettingsPopup(Popup):
